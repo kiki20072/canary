@@ -6455,9 +6455,6 @@ uint32_t Player::getAttackSpeed() const {
 		uint32_t skillLevel = getSkillLevel(SKILL_FIST);
 		uint32_t attackSpeed = currentAttackSpeed - (skillLevel * g_configManager().getNumber(MULTIPLIER_ATTACKONFIST));
 
-	std::cout << currentAttackSpeed << std::endl;
-	std::cout << newAttackSpeed << std::endl;
-
 	if (attackSpeed < MAX_ATTACK_SPEED) {
 			attackSpeed = MAX_ATTACK_SPEED;
 		}

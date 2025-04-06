@@ -9,6 +9,9 @@
 
 #include "server/network/protocol/protocolgame.hpp"
 
+#include <iostream>
+#include <algorithm>
+
 #include "account/account.hpp"
 #include "config/configmanager.hpp"
 #include "core.hpp"
@@ -3578,10 +3581,13 @@ void ProtocolGame::sendCyclopediaCharacterCombatStats() {
 		return;
 	}
 
-		int32_t extraDamagePhysical = 0.001 * player->kv()->get("physical-damage-point-system").value().getNumber();
-		int32_t multiPoint = 0.001 * player->kv()->get("spell-damage-point-system").value().getNumber();
-		int32_t multiMagicLevel = 0.05 * player->getMagicLevel();
-		int32_t extraSpellDamage = multiMagicLevel + multiPoint;
+	
+	int32_t multiPoint = 0.0007 * player->kv()->get("spell-damage-point-system").value().getNumber();
+	int32_t multiMagicLevel = 0.0005 * player->getMagicLevel();
+	int32_t extraSpellDamage = multiMagicLevel + multiPoint;
+
+	auto extraBaseMelee = 0.00001 * player->kv()->get("physical-damage-point-system").value().getNumber();
+	auto extraBaseDist = 0.00003 * player->kv()->get("physical-damage-point-system").value().getNumber();
 
 	NetworkMessage msg;
 	msg.addByte(0xDA);
@@ -3642,15 +3648,18 @@ void ProtocolGame::sendCyclopediaCharacterCombatStats() {
 
 			int32_t attackSkill = player->getSkillLevel(SKILL_DISTANCE);
 			float attackFactor = player->getAttackFactor();
-			int32_t maxDamage = static_cast<int32_t>(Weapons::getMaxWeaponDamage(player, attackSkill, attackValue, attackFactor, true) * player->getVocation()->distDamageMultiplier) + extraDamagePhysical;
+			int32_t maxDamage = static_cast<int32_t>(Weapons::getMaxWeaponDamage(player, attackSkill, attackValue, attackFactor, true) * player->getVocation()->distDamageMultiplier);
+			int32_t maxValueDamage = static_cast<int32_t>(Weapons::getMaxWeaponDamage(player, attackSkill, attackValue - weapon->getAttack() + it.abilities->elementDamage, attackFactor, true) * player->getVocation()->distDamageMultiplier);
 			if (it.abilities && it.abilities->elementType != COMBAT_NONE) {
-				maxDamage += static_cast<int32_t>(Weapons::getMaxWeaponDamage(player, attackSkill, attackValue - weapon->getAttack() + it.abilities->elementDamage, attackFactor, true) * player->getVocation()->distDamageMultiplier) + extraSpellDamage;
+				maxDamage += maxValueDamage;
 			}
+
 			msg.add<uint16_t>(maxDamage >> 1);
 			msg.addByte(CIPBIA_ELEMENTAL_PHYSICAL);
+
 			if (it.abilities && it.abilities->elementType != COMBAT_NONE) {
 				if (attackValue) {
-					msg.addByte(static_cast<uint32_t>(it.abilities->elementDamage) * 100 / attackValue);
+					msg.addByte(static_cast<uint32_t>(std::round((it.abilities->elementDamage) * 100 / attackValue) + it.abilities->elementDamage) * 100 / attackValue);
 				} else {
 					msg.addByte(0);
 				}
@@ -3662,15 +3671,23 @@ void ProtocolGame::sendCyclopediaCharacterCombatStats() {
 			int32_t attackValue = std::max<int32_t>(0, weapon->getAttack());
 			int32_t attackSkill = player->getWeaponSkill(weapon);
 			float attackFactor = player->getAttackFactor();
-			int32_t maxDamage = static_cast<int32_t>(Weapons::getMaxWeaponDamage(player, attackSkill, attackValue, attackFactor, true) * player->getVocation()->meleeDamageMultiplier) + extraDamagePhysical;
+			int32_t damageMax = ((Weapons::getMaxWeaponDamage(player, attackSkill, attackValue, attackFactor, true) * player->getVocation()->meleeDamageMultiplier));
+			int32_t maxDamage = static_cast<int32_t>(Weapons::getMaxWeaponDamage(player, attackSkill, attackValue, attackFactor, true) * player->getVocation()->distDamageMultiplier);
+			int32_t maxValueDamage = static_cast<int32_t>(Weapons::getMaxWeaponDamage(player, attackSkill, attackValue - weapon->getAttack() + it.abilities->elementDamage, attackFactor, true) * player->getVocation()->distDamageMultiplier);
 			if (it.abilities && it.abilities->elementType != COMBAT_NONE) {
-				maxDamage += static_cast<int32_t>(Weapons::getMaxWeaponDamage(player, attackSkill, it.abilities->elementDamage, attackFactor, true) * player->getVocation()->meleeDamageMultiplier) + extraSpellDamage;
+				maxDamage += maxValueDamage;
 			}
+
+			if (extraBaseMelee) {
+				maxDamage = ((maxDamage * extraBaseMelee) * maxDamage);
+			} 
+
 			msg.add<uint16_t>(maxDamage >> 1);
 			msg.addByte(CIPBIA_ELEMENTAL_PHYSICAL);
+
 			if (it.abilities && it.abilities->elementType != COMBAT_NONE) {
 				if (attackValue) {
-					msg.addByte(static_cast<uint32_t>(it.abilities->elementDamage) * 100 / attackValue);
+					msg.addByte(static_cast<uint32_t>(std::round((it.abilities->elementDamage) * 100 / attackValue) + it.abilities->elementDamage) * 100 / attackValue);
 				} else {
 					msg.addByte(0);
 				}
