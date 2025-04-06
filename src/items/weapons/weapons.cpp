@@ -76,11 +76,14 @@ int32_t Weapons::getMaxMeleeDamage(int32_t attackSkill, int32_t attackValue) {
 }
 
 // Players
-int32_t Weapons::getMaxWeaponDamage(uint32_t level, int32_t attackSkill, int32_t attackValue, float attackFactor, bool isMelee) {
+int32_t Weapons::getMaxWeaponDamage(std::shared_ptr<Player> player, int32_t attackSkill, int32_t attackValue, float attackFactor, bool isMelee) {
+	int32_t level = player->getLevel();
+	int32_t extraBaseCalculate = 0.001 * player->kv()->get("physical-damage-point-system").value().getNumber();
+	int32_t extraDamage = (extraBaseCalculate * ((0.085 * attackFactor * attackValue * attackSkill) + (level / 5)));
 	if (isMelee) {
-		return static_cast<int32_t>(std::round((0.085 * attackFactor * attackValue * attackSkill) + (level / 5)));
+		return static_cast<int32_t>(extraDamage + ((0.085 * attackFactor * attackValue * attackSkill) + (level / 5)));
 	} else {
-		return static_cast<int32_t>(std::round((0.09 * attackFactor * attackValue * attackSkill) + (level / 5)));
+		return static_cast<int32_t>(std::round(0.09 * attackFactor * attackValue * attackSkill) + (level / 5));
 	}
 }
 
@@ -190,7 +193,7 @@ CombatDamage Weapon::getCombatDamage(CombatDamage combat, const std::shared_ptr<
 	const double weaponAttackProportion = static_cast<double>(weaponAttack) / static_cast<double>(totalAttack);
 
 	// Calculating damage
-	const int32_t maxDamage = static_cast<int32_t>(Weapons::getMaxWeaponDamage(level, playerSkill, totalAttack, attackFactor, true) * player->getVocation()->meleeDamageMultiplier * damageModifier / 100);
+	const int32_t maxDamage = static_cast<int32_t>(Weapons::getMaxWeaponDamage(player, playerSkill, totalAttack, attackFactor, true) * player->getVocation()->meleeDamageMultiplier * damageModifier / 100);
 	const int32_t minDamage = level / 5;
 	const int32_t realDamage = normal_random(minDamage, maxDamage);
 
@@ -209,7 +212,7 @@ bool Weapon::useFist(const std::shared_ptr<Player> &player, const std::shared_pt
 	const int32_t attackSkill = player->getSkillLevel(SKILL_FIST);
 	constexpr int32_t attackValue = 7;
 
-	const int32_t maxDamage = Weapons::getMaxWeaponDamage(player->getLevel(), attackSkill, attackValue, attackFactor, true);
+	const int32_t maxDamage = Weapons::getMaxWeaponDamage(player, attackSkill, attackValue, attackFactor, true);
 
 	CombatParams params;
 	params.combatType = COMBAT_PHYSICALDAMAGE;
@@ -257,19 +260,24 @@ void Weapon::internalUseWeapon(const std::shared_ptr<Player> &player, const std:
 			damage.origin = ORIGIN_MELEE;
 		}
 		damage.primary.type = params.combatType;
+		int32_t extraDamagePhysical = 0.001 * player->kv()->get("physical-damage-point-system").value().getNumber();
+		int32_t multiPoint = 0.001 * player->kv()->get("spell-damage-point-system").value().getNumber();
+		int32_t multiMagicLevel = 0.05 * player->getMagicLevel();
+		int32_t extraSpellDamage = multiMagicLevel + multiPoint;
+
 		damage.secondary.type = getElementType();
 
 		const int32_t totalDamage = (getWeaponDamage(player, target, item) * damageModifier) / 100;
-		const int32_t physicalAttack = item->getAttack();
-		const int32_t elementalAttack = getElementDamageValue();
+		const int32_t physicalAttack = (extraDamagePhysical * item->getAttack()) + item->getAttack();
+		const int32_t elementalAttack = (extraSpellDamage * getElementDamageValue()) + getElementDamageValue();
 		const int32_t combinedAttack = physicalAttack + elementalAttack;
 		if (elementalAttack > 0) {
 			float physicalPercentage = static_cast<float>(physicalAttack) / combinedAttack;
 			float elementalPercentage = static_cast<float>(elementalAttack) / combinedAttack;
-			damage.primary.value = static_cast<int32_t>(totalDamage * physicalPercentage);
-			damage.secondary.value = static_cast<int32_t>(totalDamage * elementalPercentage);
+			damage.primary.value = static_cast<int32_t>(std::round((extraDamagePhysical * (totalDamage * physicalPercentage)) + (totalDamage * physicalPercentage)));
+			damage.secondary.value = static_cast<int32_t>(std::round((extraSpellDamage * (totalDamage * elementalPercentage)) + (totalDamage * elementalPercentage)));
 		} else {
-			damage.primary.value = totalDamage;
+			damage.primary.value = ((extraSpellDamage * totalDamage) / 4) + (extraSpellDamage * totalDamage) +  totalDamage;
 			damage.secondary.value = 0;
 		}
 
@@ -433,12 +441,17 @@ bool Weapon::calculateSkillFormula(const std::shared_ptr<Player> &player, int32_
 		return false;
 	}
 
+	int32_t extraDamagePhysical = 0.001 * player->kv()->get("physical-damage-point-system").value().getNumber();
+	int32_t multiPoint = 0.001 * player->kv()->get("spell-damage-point-system").value().getNumber();
+	int32_t multiMagicLevel = 0.05 * player->getMagicLevel();
+	int32_t extraSpellDamage = multiMagicLevel + multiPoint;
+
 	std::shared_ptr<Item> item = nullptr;
 	attackValue = tool->getAttack();
 	if (tool->getWeaponType() == WEAPON_AMMO) {
 		item = player->getWeapon(true);
 		if (item) {
-			attackValue += item->getAttack();
+			attackValue += (extraDamagePhysical * item->getAttack()) + item->getAttack();
 		}
 	}
 
@@ -447,7 +460,7 @@ bool Weapon::calculateSkillFormula(const std::shared_ptr<Player> &player, int32_
 
 	bool shouldCalculateSecondaryDamage = false;
 	if (elementType != COMBAT_NONE) {
-		elementAttack = getElementDamageValue();
+		elementAttack = (extraSpellDamage * getElementDamageValue()) + getElementDamageValue();
 		shouldCalculateSecondaryDamage = true;
 		attackValue += elementAttack;
 	}
@@ -608,7 +621,7 @@ int32_t WeaponMelee::getElementDamage(const std::shared_ptr<Player> &player, con
 	const float attackFactor = player->getAttackFactor();
 	const uint32_t level = player->getLevel();
 
-	const int32_t maxValue = Weapons::getMaxWeaponDamage(level, attackSkill, attackValue, attackFactor, true);
+	const int32_t maxValue = Weapons::getMaxWeaponDamage(player, attackSkill, attackValue, attackFactor, true);
 	const int32_t minValue = level / 5;
 
 	return -normal_random(minValue, static_cast<int32_t>(maxValue * player->getVocation()->meleeDamageMultiplier));
@@ -627,7 +640,7 @@ int32_t WeaponMelee::getWeaponDamage(const std::shared_ptr<Player> &player, cons
 	const float attackFactor = player->getAttackFactor();
 	const uint32_t level = player->getLevel();
 
-	const auto maxValue = static_cast<int32_t>(Weapons::getMaxWeaponDamage(level, attackSkill, combinedAttack, attackFactor, true) * player->getVocation()->meleeDamageMultiplier);
+	const auto maxValue = static_cast<int32_t>(Weapons::getMaxWeaponDamage(player, attackSkill, combinedAttack, attackFactor, true) * player->getVocation()->meleeDamageMultiplier);
 
 	const int32_t minValue = level / 5;
 
@@ -840,6 +853,8 @@ int32_t WeaponDistance::getElementDamage(const std::shared_ptr<Player> &player, 
 		return 0;
 	}
 
+	int32_t extraDamagePhysical = 0.001 * player->kv()->get("physical-damage-point-system").value().getNumber();
+
 	int32_t attackValue = elementDamage;
 	if (item && player && item->getWeaponType() == WEAPON_AMMO) {
 		const auto &weapon = player->getWeapon(true);
@@ -863,7 +878,10 @@ int32_t WeaponDistance::getElementDamage(const std::shared_ptr<Player> &player, 
 		}
 	}
 
-	return -normal_random(minValue, static_cast<int32_t>(maxValue * player->getVocation()->distDamageMultiplier));
+	uint32_t extraDamageMin = (std::round(extraDamagePhysical * (maxValue * minValue)));
+	uint32_t extraDamageMax = (std::round(extraDamagePhysical * (maxValue * player->getVocation()->distDamageMultiplier)));
+
+	return -normal_random(minValue + extraDamageMin, static_cast<int32_t>(maxValue * player->getVocation()->distDamageMultiplier) + extraDamageMax);
 }
 
 int16_t WeaponDistance::getElementDamageValue() const {

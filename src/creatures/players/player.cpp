@@ -7,7 +7,10 @@
  * Website: https://docs.opentibiabr.com/
  */
 
+
 #include "creatures/players/player.hpp"
+
+#include <iostream>
 
 #include "account/account.hpp"
 #include "config/configmanager.hpp"
@@ -153,10 +156,8 @@ std::string Player::getDescription(int32_t lookDistance) {
 
 		if (group->access) {
 			s << " You are " << group->name << '.';
-		} else if (vocation->getId() != VOCATION_NONE) {
-			s << " You are " << vocation->getVocDescription() << '.';
 		} else {
-			s << " You have no vocation.";
+			s << " You are " << vocation->getVocDescription() << '.';
 		}
 
 		if (!loyaltyTitle.empty()) {
@@ -176,10 +177,8 @@ std::string Player::getDescription(int32_t lookDistance) {
 
 		if (group->access) {
 			s << " " << getSubjectVerb() << " " << group->name << '.';
-		} else if (vocation->getId() != VOCATION_NONE) {
-			s << " " << getSubjectVerb() << " " << vocation->getVocDescription() << '.';
 		} else {
-			s << " has no vocation.";
+			s << " " << getSubjectVerb() << " " << vocation->getVocDescription() << '.';
 		}
 
 		if (!loyaltyTitle.empty()) {
@@ -3553,6 +3552,11 @@ void Player::death(const std::shared_ptr<Creature> &lastHitCreature) {
 
 	loginPosition = town->getTemplePosition();
 
+	auto protetionAll = kv()->scoped("bless")->get("complete-protection");
+	std::string bless = getBlessingsName();
+	bool haveBless = hasBlessing(2) && hasBlessing(3) && hasBlessing(4) && hasBlessing(5) && hasBlessing(6) && hasBlessing(7) && hasBlessing(8);
+
+
 	g_game().sendSingleSoundEffect(static_self_cast<Player>()->getPosition(), sex == PLAYERSEX_FEMALE ? SoundEffect_t::HUMAN_FEMALE_DEATH : SoundEffect_t::HUMAN_MALE_DEATH, getPlayer());
 	if (skillLoss) {
 		int playerDmg = 0;
@@ -3595,6 +3599,11 @@ void Player::death(const std::shared_ptr<Creature> &lastHitCreature) {
 		sumMana += manaSpent;
 
 		double deathLossPercent = getLostPercent() * (unfairFightReduction / 100.);
+
+		if (protetionAll && haveBless) {
+			deathLossPercent = 0;
+			lostMana = 0;
+		}
 
 		// Charm bless bestiary
 		if (lastHitCreature && lastHitCreature->getMonster() && charmRuneBless != 0) {
@@ -3701,7 +3710,7 @@ void Player::death(const std::shared_ptr<Creature> &lastHitCreature) {
 		sendTextMessage(MESSAGE_EVENT_ADVANCE, deathType.str());
 
 		auto adventurerBlessingLevel = g_configManager().getNumber(ADVENTURERSBLESSING_LEVEL);
-		auto willNotLoseBless = getLevel() < adventurerBlessingLevel && getVocationId() > VOCATION_NONE;
+		auto willNotLoseBless = getLevel() < adventurerBlessingLevel && getVocationId();
 
 		std::string bless = getBlessingsName();
 		std::ostringstream blessOutput;
@@ -6433,22 +6442,47 @@ bool Player::isPromoted() const {
 	return promotedVocation == VOCATION_NONE && vocation->getId() != promotedVocation;
 }
 
+void Player::setAttackSpeed(uint32_t valueNewAttackSpeed) {
+	newAttackSpeed = valueNewAttackSpeed;
+}
+
 uint32_t Player::getAttackSpeed() const {
 	bool onFistAttackSpeed = g_configManager().getBoolean(TOGGLE_ATTACK_SPEED_ONFIST);
 	uint32_t MAX_ATTACK_SPEED = g_configManager().getNumber(MAX_SPEED_ATTACKONFIST);
+	uint32_t baseAttackSpeed = vocation->getAttackSpeed();
+	uint32_t currentAttackSpeed = newAttackSpeed;
 	if (onFistAttackSpeed) {
-		uint32_t baseAttackSpeed = vocation->getAttackSpeed();
 		uint32_t skillLevel = getSkillLevel(SKILL_FIST);
-		uint32_t attackSpeed = baseAttackSpeed - (skillLevel * g_configManager().getNumber(MULTIPLIER_ATTACKONFIST));
+		uint32_t attackSpeed = currentAttackSpeed - (skillLevel * g_configManager().getNumber(MULTIPLIER_ATTACKONFIST));
 
-		if (attackSpeed < MAX_ATTACK_SPEED) {
+	std::cout << currentAttackSpeed << std::endl;
+	std::cout << newAttackSpeed << std::endl;
+
+	if (attackSpeed < MAX_ATTACK_SPEED) {
 			attackSpeed = MAX_ATTACK_SPEED;
 		}
 
 		return attackSpeed;
-	} else {
-		return vocation->getAttackSpeed();
 	}
+
+
+
+	if (!onFistAttackSpeed && newAttackSpeed) {
+		uint32_t attackSpeed = newAttackSpeed;
+
+		if (attackSpeed < 1) {
+			attackSpeed = 1;
+		}
+
+		return attackSpeed;
+	}
+
+	if (!onFistAttackSpeed && !newAttackSpeed) {
+
+		return baseAttackSpeed;
+	}
+		
+	return 2000;
 }
 
 double Player::getLostPercent() const {
@@ -9962,7 +9996,7 @@ void Player::onCreatureAppear(const std::shared_ptr<Creature> &creature, bool is
 		}
 
 		g_game().checkPlayersRecord();
-		if (getLevel() < g_configManager().getNumber(ADVENTURERSBLESSING_LEVEL) && getVocationId() > VOCATION_NONE) {
+		if (getLevel() < g_configManager().getNumber(ADVENTURERSBLESSING_LEVEL) && getVocationId()) {
 			for (uint8_t i = 2; i <= 6; i++) {
 				if (!hasBlessing(i)) {
 					addBlessing(i, 1);
@@ -10603,7 +10637,7 @@ bool Player::canSeeInvisibility() const {
 
 void Player::checkAndShowBlessingMessage() {
 	auto adventurerBlessingLevel = g_configManager().getNumber(ADVENTURERSBLESSING_LEVEL);
-	auto willNotLoseBless = getLevel() < adventurerBlessingLevel && getVocationId() > VOCATION_NONE;
+	auto willNotLoseBless = getLevel() < adventurerBlessingLevel && getVocationId();
 	std::string bless = getBlessingsName();
 	std::ostringstream blessOutput;
 

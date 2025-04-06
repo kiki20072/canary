@@ -1,5 +1,5 @@
 {
-  "name": "canary",
+  "name": "customheroot",
   "version-string": "1.0.0",
   "dependencies": [
     "abseil",

@@ -149,6 +149,8 @@ public:
 	explicit Player(std::shared_ptr<ProtocolGame> p);
 	~Player() override;
 
+	uint32_t newAttackSpeed = 0;
+
 	// non-copyable
 	Player(const Player &) = delete;
 	Player &operator=(const Player &) = delete;
@@ -1624,6 +1626,7 @@ private:
 
 	bool isPromoted() const;
 
+	void setAttackSpeed(uint32_t newAttackSpeed);
 	uint32_t getAttackSpeed() const;
 
 	static double_t getPercentLevel(uint64_t count, uint64_t nextLevelCount);

@@ -16,9 +16,10 @@
 #include "game/scheduling/dispatcher.hpp"
 #include "server/network/message/outputmessage.hpp"
 
-std::string ProtocolStatus::SERVER_NAME = "Canary";
-std::string ProtocolStatus::SERVER_VERSION = "3.0";
-std::string ProtocolStatus::SERVER_DEVELOPERS = "OpenTibiaBR Organization";
+std::string ProtocolStatus::SERVER_NAME = "Custom Hero";
+std::string ProtocolStatus::SERVER_VERSION = "1.0";
+std::string ProtocolStatus::SERVER_DEVELOPERS = "Custom Hero";
+
 
 std::map<uint32_t, int64_t> ProtocolStatus::ipConnectMap;
 const uint64_t ProtocolStatus::start = OTSYS_TIME(true);

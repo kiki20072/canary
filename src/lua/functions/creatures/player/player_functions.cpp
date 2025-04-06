@@ -410,6 +410,11 @@ void PlayerFunctions::init(lua_State* L) {
 	Lua::registerMethod(L, "Player", "removeCustomOutfit", PlayerFunctions::luaPlayerRemoveCustomOutfit);
 	Lua::registerMethod(L, "Player", "addCustomOutfit", PlayerFunctions::luaPlayerAddCustomOutfit);
 
+	// Attack Speed Players
+    Lua::registerMethod(L, "Player", "getAttackSpeed", PlayerFunctions::luaPlayerGetAttackSpeed);
+    Lua::registerMethod(L, "Player", "setAttackSpeed", PlayerFunctions::luaPlayerSetAttackSpeed);
+
+
 	GroupFunctions::init(L);
 	GuildFunctions::init(L);
 	MountFunctions::init(L);
@@ -4986,4 +4991,28 @@ int PlayerFunctions::luaPlayerRemoveCustomOutfit(lua_State* L) {
 
 	Lua::pushBoolean(L, player->attachedEffects().removeCustomOutfit(type, idOrName));
 	return 1;
+}
+
+int PlayerFunctions::luaPlayerSetAttackSpeed(lua_State* L) {
+    // player:setAttackSpeed(ms)
+    auto player = Lua::getUserdata<Player>(L, 1);
+    uint32_t ms = Lua::getNumber<uint32_t>(L, 2);
+    if (player) {
+        player->setAttackSpeed(ms);
+        Lua::pushBoolean(L, true);
+    } else {
+        lua_pushnil(L);
+    }
+    return 1;
+}
+
+int PlayerFunctions::luaPlayerGetAttackSpeed(lua_State* L) {
+    // player:getAttackSpeed()
+    auto player = Lua::getUserdata<Player>(L, 1);
+    if (player) {
+       lua_pushnumber(L, player->getAttackSpeed());
+    } else {
+        lua_pushnil(L);
+    }
+    return 1;
 }
