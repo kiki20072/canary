@@ -4389,7 +4389,7 @@ void ProtocolGame::sendBasicData() {
 				msg.add<uint16_t>(spell->getSpellId());
 			}
 		} else {
-			msg.add<uint16_t>(spell->getSpellId());
+			msg.add<uint64_t>(spell->getSpellId());
 		}
 	}
 
