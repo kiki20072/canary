@@ -6438,8 +6438,7 @@ void Player::updateBaseSpeed() {
 }
 
 bool Player::isPromoted() const {
-	const uint16_t promotedVocation = g_vocations().getPromotedVocation(vocation->getId());
-	return promotedVocation == VOCATION_NONE && vocation->getId() != promotedVocation;
+	return false;
 }
 
 void Player::setAttackSpeed(uint32_t valueNewAttackSpeed) {
@@ -10679,8 +10678,9 @@ uint16_t Player::getPlayerVocationEnum() const {
 		return Vocation_t::VOCATION_SORCERER_CIP; // Sorcerer
 	} else if (cipTibiaId == 4 || cipTibiaId == 14) {
 		return Vocation_t::VOCATION_DRUID_CIP; // Druid
-	}
-
+	} else if (cipTibiaId == 5) {
+		return Vocation_t::VOCATION_KNIGHT_CIP; // Knight
+	} 
 	return Vocation_t::VOCATION_NONE;
 }
 
@@ -10689,10 +10689,6 @@ BidErrorMessage Player::canBidHouse(uint32_t houseId) {
 	const auto house = g_game().map.houses.getHouseByClientId(houseId);
 	if (!house) {
 		return Internal;
-	}
-
-	if (getPlayerVocationEnum() == Vocation_t::VOCATION_NONE) {
-		return Rookgaard;
 	}
 
 	if (!isPremium()) {
@@ -10740,10 +10736,6 @@ TransferErrorMessage Player::canTransferHouse(uint32_t houseId, uint32_t newOwne
 		return CharacterNotExist;
 	}
 
-	if (newOwner->getPlayerVocationEnum() == Vocation_t::VOCATION_NONE) {
-		return Rookgaard;
-	}
-
 	if (!newOwner->isPremium()) {
 		return Premium;
 	}
@@ -10766,16 +10758,12 @@ AcceptTransferErrorMessage Player::canAcceptTransferHouse(uint32_t houseId) {
 		return NotNewOwner;
 	}
 
-	if (!isPremium()) {
+	if (!isPremium() && isPremium()) {
 		return Premium;
 	}
 
 	if (getAccount()->getHouseBidId() != 0) {
 		return AlreadyBid;
-	}
-
-	if (getPlayerVocationEnum() == Vocation_t::VOCATION_NONE) {
-		return Rookgaard;
 	}
 
 	if (getBankBalance() < (house->getRent() + house->getInternalBid())) {

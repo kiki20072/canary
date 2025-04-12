@@ -299,7 +299,7 @@ private:
 	void resetPlayerData();
 
 	// Members variables
-	const uint16_t m_minLevelToStartCountPoints = 50;
+	const uint16_t m_minLevelToStartCountPoints = 1;
 	uint16_t m_pointsPerLevel = 1;
 
 public:
@@ -502,9 +502,9 @@ private:
 	void processActiveGems();
 	void applyStageBonuses();
 	void applyStageBonusForColor(const std::string &color);
-	void applyRedStageBonus(uint8_t stageValue, Vocation_t vocationEnum);
-	void applyPurpleStageBonus(uint8_t stageValue, Vocation_t vocationEnum);
-	void applyBlueStageBonus(uint8_t stageValue, Vocation_t vocationEnum);
+	void applyRedStageBonus(uint8_t stageValue, uint8_t storage);
+	void applyPurpleStageBonus(uint8_t stageValue, uint8_t storage);
+	void applyBlueStageBonus(uint8_t stageValue, uint8_t storage);
 
 	friend class Player;
 	// Reference to the player

@@ -3581,7 +3581,8 @@ void ProtocolGame::sendCyclopediaCharacterCombatStats() {
 		return;
 	}
 
-	
+	int32_t extraDamagePoint = 0.05 * player->kv()->get("spell-damage-point-system").value().getNumber();
+
 	int32_t multiPoint = 0.0007 * player->kv()->get("spell-damage-point-system").value().getNumber();
 	int32_t multiMagicLevel = 0.0005 * player->getMagicLevel();
 	int32_t extraSpellDamage = multiMagicLevel + multiPoint;
@@ -3633,7 +3634,7 @@ void ProtocolGame::sendCyclopediaCharacterCombatStats() {
 	if (weapon) {
 		const ItemType &it = Item::items[weapon->getID()];
 		if (it.weaponType == WEAPON_WAND) {
-			msg.add<uint16_t>((extraSpellDamage * it.maxHitChance) + it.maxHitChance);
+			msg.add<uint16_t>((extraSpellDamage * it.maxHitChance) + it.maxHitChance + extraDamagePoint);
 			msg.addByte(getCipbiaElement(it.combatType));
 			msg.addByte(0);
 			msg.addByte(0);
@@ -4349,7 +4350,7 @@ void ProtocolGame::sendBasicData() {
 
 	// Prey window
 	if (player->getVocation()->getId() == 0 && player->getGroup()->id < GROUP_TYPE_GAMEMASTER) {
-		msg.addByte(0);
+		msg.addByte(1);
 	} else {
 		msg.addByte(1); // has reached Main (allow player to open Prey window)
 	}

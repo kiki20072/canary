@@ -575,6 +575,7 @@ int32_t WheelGemUtils::getHealthValue(Vocation_t vocation, WheelGemBasicModifier
 			WheelGemBasicModifier_t::Vocation_Health,
 			{
 				{ Vocation_t::VOCATION_KNIGHT, 300 },
+				{ Vocation_t::VOCATION_NONE, 300 },
 				{ Vocation_t::VOCATION_PALADIN, 200 },
 				{ Vocation_t::VOCATION_SORCERER, 100 },
 				{ Vocation_t::VOCATION_DRUID, 100 },
@@ -584,6 +585,7 @@ int32_t WheelGemUtils::getHealthValue(Vocation_t vocation, WheelGemBasicModifier
 			WheelGemBasicModifier_t::Vocation_Health_FireResistance,
 			{
 				{ Vocation_t::VOCATION_KNIGHT, 150 },
+				{ Vocation_t::VOCATION_NONE, 150 },
 				{ Vocation_t::VOCATION_PALADIN, 100 },
 				{ Vocation_t::VOCATION_SORCERER, 50 },
 				{ Vocation_t::VOCATION_DRUID, 50 },
@@ -593,6 +595,7 @@ int32_t WheelGemUtils::getHealthValue(Vocation_t vocation, WheelGemBasicModifier
 			WheelGemBasicModifier_t::Vocation_Health_EnergyResistance,
 			{
 				{ Vocation_t::VOCATION_KNIGHT, 150 },
+				{ Vocation_t::VOCATION_NONE, 150 },
 				{ Vocation_t::VOCATION_PALADIN, 100 },
 				{ Vocation_t::VOCATION_SORCERER, 50 },
 				{ Vocation_t::VOCATION_DRUID, 50 },
@@ -602,6 +605,7 @@ int32_t WheelGemUtils::getHealthValue(Vocation_t vocation, WheelGemBasicModifier
 			WheelGemBasicModifier_t::Vocation_Health_EarthResistance,
 			{
 				{ Vocation_t::VOCATION_KNIGHT, 150 },
+				{ Vocation_t::VOCATION_NONE, 150 },
 				{ Vocation_t::VOCATION_PALADIN, 100 },
 				{ Vocation_t::VOCATION_SORCERER, 50 },
 				{ Vocation_t::VOCATION_DRUID, 50 },
@@ -611,6 +615,7 @@ int32_t WheelGemUtils::getHealthValue(Vocation_t vocation, WheelGemBasicModifier
 			WheelGemBasicModifier_t::Vocation_Health_IceResistance,
 			{
 				{ Vocation_t::VOCATION_KNIGHT, 150 },
+				{ Vocation_t::VOCATION_NONE, 150 },
 				{ Vocation_t::VOCATION_PALADIN, 100 },
 				{ Vocation_t::VOCATION_SORCERER, 50 },
 				{ Vocation_t::VOCATION_DRUID, 50 },
@@ -620,6 +625,7 @@ int32_t WheelGemUtils::getHealthValue(Vocation_t vocation, WheelGemBasicModifier
 			WheelGemBasicModifier_t::Vocation_Mixed,
 			{
 				{ Vocation_t::VOCATION_KNIGHT, 150 },
+				{ Vocation_t::VOCATION_NONE, 150 },
 				{ Vocation_t::VOCATION_PALADIN, 100 },
 				{ Vocation_t::VOCATION_SORCERER, 50 },
 				{ Vocation_t::VOCATION_DRUID, 50 },
@@ -629,6 +635,7 @@ int32_t WheelGemUtils::getHealthValue(Vocation_t vocation, WheelGemBasicModifier
 			WheelGemBasicModifier_t::Vocation_Mixed2,
 			{
 				{ Vocation_t::VOCATION_KNIGHT, 150 },
+				{ Vocation_t::VOCATION_NONE, 150 },
 				{ Vocation_t::VOCATION_PALADIN, 100 },
 				{ Vocation_t::VOCATION_SORCERER, 50 },
 				{ Vocation_t::VOCATION_DRUID, 50 },
@@ -652,6 +659,7 @@ int32_t WheelGemUtils::getManaValue(Vocation_t vocation, WheelGemBasicModifier_t
 			WheelGemBasicModifier_t::Vocation_Mana_FireResistance,
 			{
 				{ Vocation_t::VOCATION_KNIGHT, 50 },
+				{ Vocation_t::VOCATION_NONE, 50 },
 				{ Vocation_t::VOCATION_PALADIN, 150 },
 				{ Vocation_t::VOCATION_SORCERER, 300 },
 				{ Vocation_t::VOCATION_DRUID, 300 },
@@ -661,6 +669,7 @@ int32_t WheelGemUtils::getManaValue(Vocation_t vocation, WheelGemBasicModifier_t
 			WheelGemBasicModifier_t::Vocation_Mana_EnergyResistance,
 			{
 				{ Vocation_t::VOCATION_KNIGHT, 50 },
+				{ Vocation_t::VOCATION_NONE, 50 },
 				{ Vocation_t::VOCATION_PALADIN, 150 },
 				{ Vocation_t::VOCATION_SORCERER, 300 },
 				{ Vocation_t::VOCATION_DRUID, 300 },
@@ -670,6 +679,7 @@ int32_t WheelGemUtils::getManaValue(Vocation_t vocation, WheelGemBasicModifier_t
 			WheelGemBasicModifier_t::Vocation_Mana_Earth_Resistance,
 			{
 				{ Vocation_t::VOCATION_KNIGHT, 50 },
+				{ Vocation_t::VOCATION_NONE, 50 },
 				{ Vocation_t::VOCATION_PALADIN, 150 },
 				{ Vocation_t::VOCATION_SORCERER, 300 },
 				{ Vocation_t::VOCATION_DRUID, 300 },
@@ -679,6 +689,7 @@ int32_t WheelGemUtils::getManaValue(Vocation_t vocation, WheelGemBasicModifier_t
 			WheelGemBasicModifier_t::Vocation_Mana_Ice_Resistance,
 			{
 				{ Vocation_t::VOCATION_KNIGHT, 50 },
+				{ Vocation_t::VOCATION_NONE, 50 },
 				{ Vocation_t::VOCATION_PALADIN, 150 },
 				{ Vocation_t::VOCATION_SORCERER, 300 },
 				{ Vocation_t::VOCATION_DRUID, 300 },
@@ -688,6 +699,7 @@ int32_t WheelGemUtils::getManaValue(Vocation_t vocation, WheelGemBasicModifier_t
 			WheelGemBasicModifier_t::Vocation_Mana,
 			{
 				{ Vocation_t::VOCATION_KNIGHT, 100 },
+				{ Vocation_t::VOCATION_NONE, 50 },
 				{ Vocation_t::VOCATION_PALADIN, 300 },
 				{ Vocation_t::VOCATION_SORCERER, 600 },
 				{ Vocation_t::VOCATION_DRUID, 600 },
@@ -705,6 +717,7 @@ int32_t WheelGemUtils::getManaValue(Vocation_t vocation, WheelGemBasicModifier_t
 			WheelGemBasicModifier_t::Vocation_Capacity,
 			{
 				{ Vocation_t::VOCATION_KNIGHT, 50 },
+				{ Vocation_t::VOCATION_NONE, 50 },
 				{ Vocation_t::VOCATION_PALADIN, 150 },
 				{ Vocation_t::VOCATION_SORCERER, 300 },
 				{ Vocation_t::VOCATION_DRUID, 300 },
@@ -728,6 +741,7 @@ int32_t WheelGemUtils::getCapacityValue(Vocation_t vocation, WheelGemBasicModifi
 			WheelGemBasicModifier_t::Vocation_Capacity_FireResistance,
 			{
 				{ Vocation_t::VOCATION_KNIGHT, 250 },
+				{ Vocation_t::VOCATION_NONE, 250 },
 				{ Vocation_t::VOCATION_PALADIN, 200 },
 				{ Vocation_t::VOCATION_SORCERER, 100 },
 				{ Vocation_t::VOCATION_DRUID, 100 },
@@ -737,6 +751,7 @@ int32_t WheelGemUtils::getCapacityValue(Vocation_t vocation, WheelGemBasicModifi
 			WheelGemBasicModifier_t::Vocation_Capacity_EnergyResistance,
 			{
 				{ Vocation_t::VOCATION_KNIGHT, 250 },
+				{ Vocation_t::VOCATION_NONE, 250 },
 				{ Vocation_t::VOCATION_PALADIN, 200 },
 				{ Vocation_t::VOCATION_SORCERER, 100 },
 				{ Vocation_t::VOCATION_DRUID, 100 },
@@ -746,6 +761,7 @@ int32_t WheelGemUtils::getCapacityValue(Vocation_t vocation, WheelGemBasicModifi
 			WheelGemBasicModifier_t::Vocation_Capacity_EarthResistance,
 			{
 				{ Vocation_t::VOCATION_KNIGHT, 250 },
+				{ Vocation_t::VOCATION_NONE, 250 },
 				{ Vocation_t::VOCATION_PALADIN, 200 },
 				{ Vocation_t::VOCATION_SORCERER, 100 },
 				{ Vocation_t::VOCATION_DRUID, 100 },
@@ -755,6 +771,7 @@ int32_t WheelGemUtils::getCapacityValue(Vocation_t vocation, WheelGemBasicModifi
 			WheelGemBasicModifier_t::Vocation_Capacity_IceResistance,
 			{
 				{ Vocation_t::VOCATION_KNIGHT, 250 },
+				{ Vocation_t::VOCATION_NONE, 250 },
 				{ Vocation_t::VOCATION_PALADIN, 200 },
 				{ Vocation_t::VOCATION_SORCERER, 100 },
 				{ Vocation_t::VOCATION_DRUID, 100 },
@@ -764,6 +781,7 @@ int32_t WheelGemUtils::getCapacityValue(Vocation_t vocation, WheelGemBasicModifi
 			WheelGemBasicModifier_t::Vocation_Capacity,
 			{
 				{ Vocation_t::VOCATION_KNIGHT, 500 },
+				{ Vocation_t::VOCATION_NONE, 500 },
 				{ Vocation_t::VOCATION_PALADIN, 400 },
 				{ Vocation_t::VOCATION_SORCERER, 200 },
 				{ Vocation_t::VOCATION_DRUID, 200 },
@@ -773,12 +791,14 @@ int32_t WheelGemUtils::getCapacityValue(Vocation_t vocation, WheelGemBasicModifi
 			WheelGemBasicModifier_t::Vocation_Mixed,
 			{
 				{ Vocation_t::VOCATION_KNIGHT, 125 },
+				{ Vocation_t::VOCATION_NONE, 125 },
 			},
 		},
 		{
 			WheelGemBasicModifier_t::Vocation_Mixed2,
 			{
 				{ Vocation_t::VOCATION_KNIGHT, 250 },
+				{ Vocation_t::VOCATION_NONE, 250 },
 				{ Vocation_t::VOCATION_PALADIN, 200 },
 				{ Vocation_t::VOCATION_SORCERER, 100 },
 				{ Vocation_t::VOCATION_DRUID, 100 },

@@ -10,6 +10,9 @@
 // Player.hpp already includes the wheel
 #include "creatures/players/player.hpp"
 
+#include <iostream>
+#include <algorithm> // para std::min
+
 #include "map/spectators.hpp"
 #include "creatures/monsters/monster.hpp"
 #include "config/configmanager.hpp"
@@ -863,17 +866,17 @@ bool PlayerWheel::getSpellAdditionalArea(const std::string &spellName) const {
 		return false;
 	}
 
-	const auto vocationEnum = m_player.getPlayerVocationEnum();
-	if (vocationEnum == Vocation_t::VOCATION_KNIGHT_CIP) {
+	const auto storage = m_player.getStorageValue(111000);
+	if (storage == 1) {
 		return checkSpellArea(g_game().getIOWheel()->getWheelBonusData().spells.knight, spellName, stage);
 	}
-	if (vocationEnum == Vocation_t::VOCATION_PALADIN_CIP) {
+	if (storage == 2) {
 		return checkSpellArea(g_game().getIOWheel()->getWheelBonusData().spells.paladin, spellName, stage);
 	}
-	if (vocationEnum == Vocation_t::VOCATION_DRUID_CIP) {
+	if (storage == 4) {
 		return checkSpellArea(g_game().getIOWheel()->getWheelBonusData().spells.druid, spellName, stage);
 	}
-	if (vocationEnum == Vocation_t::VOCATION_SORCERER_CIP) {
+	if (storage == 3) {
 		return checkSpellArea(g_game().getIOWheel()->getWheelBonusData().spells.sorcerer, spellName, stage);
 	}
 
@@ -886,17 +889,17 @@ int PlayerWheel::getSpellAdditionalTarget(const std::string &spellName) const {
 		return 0;
 	}
 
-	const auto vocationEnum = m_player.getPlayerVocationEnum();
-	if (vocationEnum == Vocation_t::VOCATION_KNIGHT_CIP) {
+	const auto storage = m_player.getStorageValue(111000);
+	if (storage == 1) {
 		return checkSpellAdditionalTarget(g_game().getIOWheel()->getWheelBonusData().spells.knight, spellName, stage);
 	}
-	if (vocationEnum == Vocation_t::VOCATION_PALADIN_CIP) {
+	if (storage == 2) {
 		return checkSpellAdditionalTarget(g_game().getIOWheel()->getWheelBonusData().spells.paladin, spellName, stage);
 	}
-	if (vocationEnum == Vocation_t::VOCATION_DRUID_CIP) {
+	if (storage == 4) {
 		return checkSpellAdditionalTarget(g_game().getIOWheel()->getWheelBonusData().spells.druid, spellName, stage);
 	}
-	if (vocationEnum == Vocation_t::VOCATION_SORCERER_CIP) {
+	if (storage == 3) {
 		return checkSpellAdditionalTarget(g_game().getIOWheel()->getWheelBonusData().spells.sorcerer, spellName, stage);
 	}
 
@@ -909,17 +912,17 @@ int PlayerWheel::getSpellAdditionalDuration(const std::string &spellName) const 
 		return 0;
 	}
 
-	const auto vocationEnum = m_player.getPlayerVocationEnum();
-	if (vocationEnum == Vocation_t::VOCATION_KNIGHT_CIP) {
+	const auto storage = m_player.getStorageValue(111000);
+	if (storage == 1) {
 		return checkSpellAdditionalDuration(g_game().getIOWheel()->getWheelBonusData().spells.knight, spellName, stage);
 	}
-	if (vocationEnum == Vocation_t::VOCATION_PALADIN_CIP) {
+	if (storage == 2) {
 		return checkSpellAdditionalDuration(g_game().getIOWheel()->getWheelBonusData().spells.paladin, spellName, stage);
 	}
-	if (vocationEnum == Vocation_t::VOCATION_DRUID_CIP) {
+	if (storage == 4) {
 		return checkSpellAdditionalDuration(g_game().getIOWheel()->getWheelBonusData().spells.druid, spellName, stage);
 	}
-	if (vocationEnum == Vocation_t::VOCATION_SORCERER_CIP) {
+	if (storage == 3) {
 		return checkSpellAdditionalDuration(g_game().getIOWheel()->getWheelBonusData().spells.sorcerer, spellName, stage);
 	}
 
@@ -1450,18 +1453,15 @@ void PlayerWheel::sendOpenWheelWindow(NetworkMessage &msg, uint32_t ownerId) {
 	if (m_player.client && m_player.client->oldProtocol) {
 		return;
 	}
+	auto wheel = m_player.getStorageValue(111000);
 
 	msg.addByte(0x5F);
 	const bool canUse = canOpenWheel();
 	msg.add<uint32_t>(ownerId); // Player ID
 	msg.addByte(canUse ? 1 : 0); // Can Use
-	if (!canUse) {
-		return;
-	}
-
 	addInitialGems();
 	msg.addByte(getOptions(ownerId)); // Options
-	msg.addByte(m_player.getPlayerVocationEnum()); // Vocation id
+	msg.addByte(wheel); // Vocation id
 
 	msg.add<uint16_t>(getWheelPoints(false)); // Points (false param for not send extra points)
 	msg.add<uint16_t>(getExtraPoints()); // Extra points
@@ -1858,20 +1858,15 @@ bool PlayerWheel::saveDBPlayerSlotPointsOnLogout() const {
 }
 
 uint16_t PlayerWheel::getExtraPoints() const {
-	if (m_player.getLevel() < 51) {
-		g_logger().error("Character level must be above 50.");
+	if (m_player.getLevel() < 1) {
+		g_logger().error("Character level must be above 1.");
 		return 0;
 	}
 
 	uint16_t totalBonus = 0;
 	for (const auto &[itemId, name, extraPoints] : m_unlockedScrolls) {
-		if (itemId == 0) {
-			continue;
-		}
-
 		totalBonus += extraPoints;
 	}
-
 	return totalBonus;
 }
 
@@ -1879,10 +1874,8 @@ uint16_t PlayerWheel::getWheelPoints(bool includeExtraPoints /* = true*/) const 
 	const uint32_t level = m_player.getLevel();
 	auto totalPoints = std::max(0u, (level - m_minLevelToStartCountPoints)) * m_pointsPerLevel;
 
-	if (includeExtraPoints) {
 		const auto extraPoints = getExtraPoints();
 		totalPoints += extraPoints;
-	}
 
 	return totalPoints;
 }
@@ -1917,21 +1910,8 @@ void PlayerWheel::addInitialGems() {
 }
 
 bool PlayerWheel::canOpenWheel() const {
-	// Vocation check
-	if (m_player.getPlayerVocationEnum() == Vocation_t::VOCATION_NONE) {
-		return false;
-	}
-
 	// Level check, This is hardcoded on the client, cannot be changed
-	if (m_player.getLevel() <= 50) {
-		return false;
-	}
-
-	if (!m_player.isPremium()) {
-		return false;
-	}
-
-	if (!m_player.isPromoted()) {
+	if (m_player.getLevel() < 1) {
 		return false;
 	}
 
@@ -2430,9 +2410,7 @@ void PlayerWheel::loadDedicationAndConvictionPerks() {
 	using VocationBonusFunction = std::function<void(const std::shared_ptr<Player> &, uint16_t, uint8_t, PlayerWheelMethodsBonusData &)>;
 	const auto &wheelFunctions = g_game().getIOWheel()->getWheelMapFunctions();
 	const auto vocationCipId = m_player.getPlayerVocationEnum();
-	if (vocationCipId < VOCATION_KNIGHT_CIP || vocationCipId > VOCATION_DRUID_CIP) {
-		return;
-	}
+
 
 	for (auto slot : magic_enum::enum_values<WheelSlots_t>()) {
 		const uint16_t points = getPointsBySlotType(slot);
@@ -2520,32 +2498,32 @@ void PlayerWheel::applyStageBonusForColor(const std::string &color) {
 	m_playerBonusData.stats.healing += statsHealing;
 
 	auto stageValue = static_cast<uint8_t>(stageEnum);
-	auto vocationEnum = static_cast<Vocation_t>(m_player.getPlayerVocationEnum());
+	uint8_t storage = m_player.getStorageValue(111000);
 	if (color == "green") {
 		m_playerBonusData.stages.giftOfLife = stageValue;
 	} else if (color == "red") {
-		applyRedStageBonus(stageValue, vocationEnum);
+		applyRedStageBonus(stageValue, storage);
 	} else if (color == "purple") {
-		applyPurpleStageBonus(stageValue, vocationEnum);
+		applyPurpleStageBonus(stageValue, storage);
 	} else if (color == "blue") {
-		applyBlueStageBonus(stageValue, vocationEnum);
+		applyBlueStageBonus(stageValue, storage);
 	}
 }
 
-void PlayerWheel::applyRedStageBonus(uint8_t stageValue, Vocation_t vocationEnum) {
-	if (vocationEnum == Vocation_t::VOCATION_DRUID_CIP) {
+void PlayerWheel::applyRedStageBonus(uint8_t stageValue, uint8_t storage) {
+	if (storage == 4) {
 		m_playerBonusData.stages.blessingOfTheGrove = stageValue;
-	} else if (vocationEnum == Vocation_t::VOCATION_KNIGHT_CIP) {
+	} else if (storage == 1) {
 		m_playerBonusData.stages.executionersThrow = stageValue;
 		for (uint8_t i = 0; i < stageValue; ++i) {
 			addSpellToVector("Executioner's Throw");
 		}
-	} else if (vocationEnum == Vocation_t::VOCATION_SORCERER_CIP) {
+	} else if (storage == 3) {
 		m_playerBonusData.stages.beamMastery = stageValue;
 		for (uint8_t i = 0; i < stageValue; ++i) {
 			addSpellToVector("Great Death Beam");
 		}
-	} else if (vocationEnum == Vocation_t::VOCATION_PALADIN_CIP) {
+	} else if (storage == 2) {
 		m_playerBonusData.stages.divineGrenade = stageValue;
 		for (uint8_t i = 0; i < stageValue; ++i) {
 			addSpellToVector("Divine Grenade");
@@ -2553,23 +2531,23 @@ void PlayerWheel::applyRedStageBonus(uint8_t stageValue, Vocation_t vocationEnum
 	}
 }
 
-void PlayerWheel::applyPurpleStageBonus(uint8_t stageValue, Vocation_t vocationEnum) {
-	if (vocationEnum == Vocation_t::VOCATION_KNIGHT_CIP) {
+void PlayerWheel::applyPurpleStageBonus(uint8_t stageValue, uint8_t storage) {
+	if (storage == 1) {
 		m_playerBonusData.avatar.steel = stageValue;
 		for (uint8_t i = 0; i < stageValue; ++i) {
 			addSpellToVector("Avatar of Steel");
 		}
-	} else if (vocationEnum == Vocation_t::VOCATION_PALADIN_CIP) {
+	} else if (storage == 2) {
 		m_playerBonusData.avatar.light = stageValue;
 		for (uint8_t i = 0; i < stageValue; ++i) {
 			addSpellToVector("Avatar of Light");
 		}
-	} else if (vocationEnum == Vocation_t::VOCATION_DRUID_CIP) {
+	} else if (storage == 4) {
 		m_playerBonusData.avatar.nature = stageValue;
 		for (uint8_t i = 0; i < stageValue; ++i) {
 			addSpellToVector("Avatar of Nature");
 		}
-	} else if (vocationEnum == Vocation_t::VOCATION_SORCERER_CIP) {
+	} else if (storage == 3) {
 		m_playerBonusData.avatar.storm = stageValue;
 		for (uint8_t i = 0; i < stageValue; ++i) {
 			addSpellToVector("Avatar of Storm");
@@ -2577,20 +2555,20 @@ void PlayerWheel::applyPurpleStageBonus(uint8_t stageValue, Vocation_t vocationE
 	}
 }
 
-void PlayerWheel::applyBlueStageBonus(uint8_t stageValue, Vocation_t vocationEnum) {
-	if (vocationEnum == Vocation_t::VOCATION_KNIGHT_CIP) {
+void PlayerWheel::applyBlueStageBonus(uint8_t stageValue, uint8_t storage) {
+	if (storage == 1) {
 		m_playerBonusData.stages.combatMastery = stageValue;
-	} else if (vocationEnum == Vocation_t::VOCATION_SORCERER_CIP) {
+	} else if (storage == 3) {
 		m_playerBonusData.stages.drainBody = stageValue;
 		for (uint8_t i = 0; i <= stageValue; ++i) {
 			addSpellToVector("Drain_Body_Spells");
 		}
-	} else if (vocationEnum == Vocation_t::VOCATION_PALADIN_CIP) {
+	} else if (storage == 2) {
 		m_playerBonusData.stages.divineEmpowerment = stageValue;
 		for (uint8_t i = 0; i <= stageValue; ++i) {
 			addSpellToVector("Divine Empowerment");
 		}
-	} else if (vocationEnum == Vocation_t::VOCATION_DRUID_CIP) {
+	} else if (storage == 4) {
 		m_playerBonusData.stages.twinBurst = stageValue;
 		for (uint8_t i = 1; i <= stageValue; ++i) {
 			addSpellToVector("Terra Burst");

@@ -331,11 +331,15 @@ void Weapon::onUsedWeapon(const std::shared_ptr<Player> &player, const std::shar
 		}
 	}
 
-	const uint32_t manaCost = getManaCost(player);
+	uint32_t manaCost = getManaCost(player);
+	int32_t extraDamagePoint = (0.05 * player->kv()->get("spell-damage-point-system").value().getNumber()) / 4;
+	int32_t multiPoint = 0.0007 * player->kv()->get("spell-damage-point-system").value().getNumber();
+	int32_t multiMagicLevel = 0.0005 * player->getMagicLevel();
+	int32_t extraSpellDamage = multiMagicLevel + multiPoint;
+	manaCost = (manaCost * extraSpellDamage) + manaCost + extraDamagePoint;
 	if (manaCost != 0) {
 		player->addManaSpent(manaCost);
 		player->changeMana(-static_cast<int32_t>(manaCost));
-
 		if (g_configManager().getBoolean(REFUND_BEGINNING_WEAPON_MANA) && (item->getName() == "wand of vortex" || item->getName() == "snakebite rod")) {
 			player->changeMana(static_cast<int32_t>(manaCost));
 		}
@@ -992,11 +996,12 @@ void WeaponWand::configureWeapon(const ItemType &it) {
 }
 
 int32_t WeaponWand::getWeaponDamage(const std::shared_ptr<Player> &player, const std::shared_ptr<Creature> &, const std::shared_ptr<Item> &, bool maxDamage /* = false*/) const {
+	int32_t extraDamagePoint = 0.05 * player->kv()->get("spell-damage-point-system").value().getNumber();
 	int32_t multiPoint = 0.0007 * player->kv()->get("spell-damage-point-system").value().getNumber();
 	int32_t multiMagicLevel = 0.0005 * player->getMagicLevel();
 	int32_t extraSpellDamage = multiMagicLevel + multiPoint;
 
-	return maxDamage ? -((extraSpellDamage * maxChange) + maxChange) : -normal_random((minChange * extraSpellDamage) + minChange, (maxChange * extraSpellDamage) + maxChange);
+	return maxDamage ? -((extraSpellDamage * maxChange) + maxChange + extraDamagePoint) : -normal_random((minChange * extraSpellDamage) + minChange + extraDamagePoint, (maxChange * extraSpellDamage) + maxChange + extraDamagePoint);
 }
 
 int16_t WeaponWand::getElementDamageValue() const {
