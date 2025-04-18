@@ -3581,14 +3581,12 @@ void ProtocolGame::sendCyclopediaCharacterCombatStats() {
 		return;
 	}
 
-	int32_t extraDamagePoint = 0.05 * player->kv()->get("spell-damage-point-system").value().getNumber();
-
-	int32_t multiPoint = 0.0007 * player->kv()->get("spell-damage-point-system").value().getNumber();
-	int32_t multiMagicLevel = 0.0005 * player->getMagicLevel();
+	int32_t multiPoint = 0.05 * player->kv()->get("spell-damage-point-system").value().getNumber();
+	int32_t multiMagicLevel = 0.1 * player->getMagicLevel();
 	int32_t extraSpellDamage = multiMagicLevel + multiPoint;
 
-	auto extraBaseMelee = 0.00001 * player->kv()->get("physical-damage-point-system").value().getNumber();
-	auto extraBaseDist = 0.00003 * player->kv()->get("physical-damage-point-system").value().getNumber();
+	auto extraBaseMelee = 0.00005 * player->kv()->get("physical-damage-point-system").value().getNumber();
+	auto extraBaseDist = 0.00005 * player->kv()->get("physical-damage-point-system").value().getNumber();
 
 	NetworkMessage msg;
 	msg.addByte(0xDA);
@@ -3634,7 +3632,7 @@ void ProtocolGame::sendCyclopediaCharacterCombatStats() {
 	if (weapon) {
 		const ItemType &it = Item::items[weapon->getID()];
 		if (it.weaponType == WEAPON_WAND) {
-			msg.add<uint16_t>((extraSpellDamage * it.maxHitChance) + it.maxHitChance + extraDamagePoint);
+			msg.add<uint16_t>(((multiMagicLevel * (it.maxHitChance + multiPoint)) + it.maxHitChance) / 2);
 			msg.addByte(getCipbiaElement(it.combatType));
 			msg.addByte(0);
 			msg.addByte(0);
@@ -3678,10 +3676,6 @@ void ProtocolGame::sendCyclopediaCharacterCombatStats() {
 			if (it.abilities && it.abilities->elementType != COMBAT_NONE) {
 				maxDamage += maxValueDamage;
 			}
-
-			if (extraBaseMelee) {
-				maxDamage = ((maxDamage * extraBaseMelee) * maxDamage);
-			} 
 
 			msg.add<uint16_t>(maxDamage >> 1);
 			msg.addByte(CIPBIA_ELEMENTAL_PHYSICAL);

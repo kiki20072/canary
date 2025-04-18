@@ -81,12 +81,12 @@ int32_t Weapons::getMaxMeleeDamage(int32_t attackSkill, int32_t attackValue) {
 // Players
 int32_t Weapons::getMaxWeaponDamage(std::shared_ptr<Player> player, int32_t attackSkill, int32_t attackValue, float attackFactor, bool isMelee) {
 	int32_t level = player->getLevel();
-
+	auto extraBaseMelee =(0.00005 * player->kv()->get("physical-damage-point-system").value().getNumber()) * weapon;
 	int32_t meleeDamage = ((0.085 * attackFactor * attackValue * attackSkill) + (level / 5));
 	int32_t distDamage = (0.09 * attackFactor * attackValue * attackSkill) + (level / 5);
 
 	if (isMelee) {
-		return static_cast<int32_t>(std::round(meleeDamage));
+		return static_cast<int32_t>(std::round((extraBaseMelee * meleeDamage) + meleeDamage));
 	} else {
 		return static_cast<int32_t>(std::round(distDamage));
 	}
@@ -332,11 +332,10 @@ void Weapon::onUsedWeapon(const std::shared_ptr<Player> &player, const std::shar
 	}
 
 	uint32_t manaCost = getManaCost(player);
-	int32_t extraDamagePoint = (0.05 * player->kv()->get("spell-damage-point-system").value().getNumber()) / 4;
-	int32_t multiPoint = 0.0007 * player->kv()->get("spell-damage-point-system").value().getNumber();
-	int32_t multiMagicLevel = 0.0005 * player->getMagicLevel();
+	int32_t multiPoint = 0.01 * player->kv()->get("spell-damage-point-system").value().getNumber();
+	int32_t multiMagicLevel = 0.01 * player->getMagicLevel();
 	int32_t extraSpellDamage = multiMagicLevel + multiPoint;
-	manaCost = (manaCost * extraSpellDamage) + manaCost + extraDamagePoint;
+	manaCost = (manaCost * extraSpellDamage) + manaCost + multiPoint;
 	if (manaCost != 0) {
 		player->addManaSpent(manaCost);
 		player->changeMana(-static_cast<int32_t>(manaCost));
@@ -647,14 +646,6 @@ int32_t WeaponMelee::getWeaponDamage(const std::shared_ptr<Player> &player, cons
 	auto weapon = (Weapons::getMaxWeaponDamage(player, attackSkill, combinedAttack, attackFactor, true) * player->getVocation()->meleeDamageMultiplier);
 	auto maxValue = weapon;
 
-	auto extraBaseMelee =(0.00001 * player->kv()->get("physical-damage-point-system").value().getNumber()) * weapon;
-	auto extraDamage = (extraBaseMelee * maxValue);
-	
-	if (extraDamage) {
-		minValue += extraDamage;
-		maxValue += extraDamage;
-	}
-
 	if (elementalAttack) {
 		minValue = minValue / 2;
 		maxValue = maxValue / 2;
@@ -932,7 +923,7 @@ int32_t WeaponDistance::getWeaponDamage(const std::shared_ptr<Player> &player, c
 	auto maxValueWeapon = (0.09f * attackFactor) * attackSkill * attackValue + minValue;
 	auto maxValue = maxValueWeapon;
 
-	auto extraBaseDist = (0.00003 * player->kv()->get("physical-damage-point-system").value().getNumber()) * attackValue;
+	auto extraBaseDist = (0.00005 * player->kv()->get("physical-damage-point-system").value().getNumber()) * attackValue;
 	auto extraDamage = (extraBaseDist * maxValueWeapon);
 
 	if (extraBaseDist) {
@@ -996,12 +987,11 @@ void WeaponWand::configureWeapon(const ItemType &it) {
 }
 
 int32_t WeaponWand::getWeaponDamage(const std::shared_ptr<Player> &player, const std::shared_ptr<Creature> &, const std::shared_ptr<Item> &, bool maxDamage /* = false*/) const {
-	int32_t extraDamagePoint = 0.05 * player->kv()->get("spell-damage-point-system").value().getNumber();
-	int32_t multiPoint = 0.0007 * player->kv()->get("spell-damage-point-system").value().getNumber();
-	int32_t multiMagicLevel = 0.0005 * player->getMagicLevel();
+	int32_t multiPoint = 0.05 * player->kv()->get("spell-damage-point-system").value().getNumber();
+	int32_t multiMagicLevel = 0.1 * player->getMagicLevel();
 	int32_t extraSpellDamage = multiMagicLevel + multiPoint;
 
-	return maxDamage ? -((extraSpellDamage * maxChange) + maxChange + extraDamagePoint) : -normal_random((minChange * extraSpellDamage) + minChange + extraDamagePoint, (maxChange * extraSpellDamage) + maxChange + extraDamagePoint);
+	return maxDamage ? -(((multiMagicLevel * (maxChange + multiPoint)) + maxChange) / 2) : -normal_random(((multiMagicLevel * (minChange + multiPoint)) + minChange) / 2, (((multiMagicLevel * (maxChange + multiPoint)) + maxChange) / 2));
 }
 
 int16_t WeaponWand::getElementDamageValue() const {
