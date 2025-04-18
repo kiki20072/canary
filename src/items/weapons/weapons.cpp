@@ -81,7 +81,7 @@ int32_t Weapons::getMaxMeleeDamage(int32_t attackSkill, int32_t attackValue) {
 // Players
 int32_t Weapons::getMaxWeaponDamage(std::shared_ptr<Player> player, int32_t attackSkill, int32_t attackValue, float attackFactor, bool isMelee) {
 	int32_t level = player->getLevel();
-	auto extraBaseMelee =(0.00005 * player->kv()->get("physical-damage-point-system").value().getNumber()) * weapon;
+	auto extraBaseMelee = (0.00005 * player->kv()->get("physical-damage-point-system").value().getNumber()) * attackValue;
 	int32_t meleeDamage = ((0.085 * attackFactor * attackValue * attackSkill) + (level / 5));
 	int32_t distDamage = (0.09 * attackFactor * attackValue * attackSkill) + (level / 5);
 
@@ -991,7 +991,7 @@ int32_t WeaponWand::getWeaponDamage(const std::shared_ptr<Player> &player, const
 	int32_t multiMagicLevel = 0.1 * player->getMagicLevel();
 	int32_t extraSpellDamage = multiMagicLevel + multiPoint;
 
-	return maxDamage ? -(((multiMagicLevel * (maxChange + multiPoint)) + maxChange) / 2) : -normal_random(((multiMagicLevel * (minChange + multiPoint)) + minChange) / 2, (((multiMagicLevel * (maxChange + multiPoint)) + maxChange) / 2));
+	return maxDamage ? -(((multiMagicLevel * (maxChange + multiPoint)) / 2) + maxChange) : -normal_random(((multiMagicLevel * (minChange + multiPoint)) / 2) + minChange, (((multiMagicLevel * (maxChange + multiPoint)) / 2) + maxChange));
 }
 
 int16_t WeaponWand::getElementDamageValue() const {

@@ -3632,7 +3632,7 @@ void ProtocolGame::sendCyclopediaCharacterCombatStats() {
 	if (weapon) {
 		const ItemType &it = Item::items[weapon->getID()];
 		if (it.weaponType == WEAPON_WAND) {
-			msg.add<uint16_t>(((multiMagicLevel * (it.maxHitChance + multiPoint)) + it.maxHitChance) / 2);
+			msg.add<uint16_t>(((multiMagicLevel * (it.maxHitChance + multiPoint)) / 2) + it.maxHitChance);
 			msg.addByte(getCipbiaElement(it.combatType));
 			msg.addByte(0);
 			msg.addByte(0);
