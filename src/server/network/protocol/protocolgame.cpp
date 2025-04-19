@@ -3585,6 +3585,7 @@ void ProtocolGame::sendCyclopediaCharacterCombatStats() {
 	int32_t multiMagicLevel = 0.1 * player->getMagicLevel();
 	int32_t extraSpellDamage = multiMagicLevel + multiPoint;
 
+	int32_t extraDamage =  player->kv()->get("spell-damage-point-system").value().getNumber() / 4;
 	auto extraBaseMelee = 0.00005 * player->kv()->get("physical-damage-point-system").value().getNumber();
 	auto extraBaseDist = 0.00005 * player->kv()->get("physical-damage-point-system").value().getNumber();
 
@@ -3632,7 +3633,7 @@ void ProtocolGame::sendCyclopediaCharacterCombatStats() {
 	if (weapon) {
 		const ItemType &it = Item::items[weapon->getID()];
 		if (it.weaponType == WEAPON_WAND) {
-			msg.add<uint16_t>(((multiMagicLevel * (it.maxHitChance + multiPoint)) / 2) + it.maxHitChance);
+			msg.add<uint16_t>(((multiMagicLevel * (it.maxHitChance + multiPoint)) / 2) + it.maxHitChance + extraDamage);
 			msg.addByte(getCipbiaElement(it.combatType));
 			msg.addByte(0);
 			msg.addByte(0);

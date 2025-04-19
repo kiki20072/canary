@@ -988,10 +988,11 @@ void WeaponWand::configureWeapon(const ItemType &it) {
 
 int32_t WeaponWand::getWeaponDamage(const std::shared_ptr<Player> &player, const std::shared_ptr<Creature> &, const std::shared_ptr<Item> &, bool maxDamage /* = false*/) const {
 	int32_t multiPoint = 0.05 * player->kv()->get("spell-damage-point-system").value().getNumber();
+	int32_t extraDamage =  player->kv()->get("spell-damage-point-system").value().getNumber() / 4;
 	int32_t multiMagicLevel = 0.1 * player->getMagicLevel();
 	int32_t extraSpellDamage = multiMagicLevel + multiPoint;
 
-	return maxDamage ? -(((multiMagicLevel * (maxChange + multiPoint)) / 2) + maxChange) : -normal_random(((multiMagicLevel * (minChange + multiPoint)) / 2) + minChange, (((multiMagicLevel * (maxChange + multiPoint)) / 2) + maxChange));
+	return maxDamage ? -(((multiMagicLevel * (maxChange + multiPoint)) / 2) + maxChange + extraDamage) : -normal_random(((multiMagicLevel * (minChange + multiPoint)) / 2) + minChange + extraDamage, (((multiMagicLevel * (maxChange + multiPoint))) / 2) + maxChange + extraDamage);
 }
 
 int16_t WeaponWand::getElementDamageValue() const {
