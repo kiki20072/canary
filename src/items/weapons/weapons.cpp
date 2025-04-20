@@ -335,7 +335,7 @@ void Weapon::onUsedWeapon(const std::shared_ptr<Player> &player, const std::shar
 	int32_t multiPoint = 0.01 * player->kv()->get("spell-damage-point-system").value().getNumber();
 	int32_t multiMagicLevel = 0.01 * player->getMagicLevel();
 	int32_t extraSpellDamage = multiMagicLevel + multiPoint;
-	manaCost = (manaCost * extraSpellDamage) + manaCost + multiPoint;
+	manaCost = std::round((manaCost * extraSpellDamage) + manaCost + multiPoint);
 	if (manaCost != 0) {
 		player->addManaSpent(manaCost);
 		player->changeMana(-static_cast<int32_t>(manaCost));
