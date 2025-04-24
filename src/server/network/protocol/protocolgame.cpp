@@ -9,9 +9,6 @@
 
 #include "server/network/protocol/protocolgame.hpp"
 
-#include <iostream>
-#include <algorithm>
-
 #include "account/account.hpp"
 #include "config/configmanager.hpp"
 #include "core.hpp"
@@ -3581,13 +3578,11 @@ void ProtocolGame::sendCyclopediaCharacterCombatStats() {
 		return;
 	}
 
-	int32_t multiPoint = 0.05 * player->kv()->get("spell-damage-point-system").value().getNumber();
-	int32_t multiMagicLevel = 0.1 * player->getMagicLevel();
-	int32_t extraSpellDamage = multiMagicLevel + multiPoint;
+	auto pointPhysical = player->kv()->get("physical-damage-point-system").value().getNumber();
+	auto addPhysicalPoints = pointPhysical / 3000;
 
-	int32_t extraDamage =  player->kv()->get("spell-damage-point-system").value().getNumber() / 4;
-	auto extraBaseMelee = 0.00005 * player->kv()->get("physical-damage-point-system").value().getNumber();
-	auto extraBaseDist = 0.00005 * player->kv()->get("physical-damage-point-system").value().getNumber();
+	auto pointSpells = player->kv()->get("spell-damage-point-system").value().getNumber();
+	auto addSpellDamagePoints = pointSpells / 100;
 
 	NetworkMessage msg;
 	msg.addByte(0xDA);
@@ -3633,12 +3628,15 @@ void ProtocolGame::sendCyclopediaCharacterCombatStats() {
 	if (weapon) {
 		const ItemType &it = Item::items[weapon->getID()];
 		if (it.weaponType == WEAPON_WAND) {
-			msg.add<uint16_t>(((multiMagicLevel * (it.maxHitChance + multiPoint)) / 2) + it.maxHitChance + extraDamage);
+			const auto addSpellDamageFinal = std::round(addSpellDamagePoints * it.maxHitChance);
+			msg.add<uint16_t>(it.maxHitChance + addSpellDamageFinal);
 			msg.addByte(getCipbiaElement(it.combatType));
 			msg.addByte(0);
 			msg.addByte(0);
 		} else if (it.weaponType == WEAPON_DISTANCE || it.weaponType == WEAPON_AMMO || it.weaponType == WEAPON_MISSILE) {
 			int32_t attackValue = weapon->getAttack();
+			const int32_t extraAttackValue = std::round(addPhysicalPoints * attackValue);
+			attackValue += extraAttackValue;			
 			if (it.weaponType == WEAPON_AMMO) {
 				std::shared_ptr<Item> weaponItem = player->getWeapon(true);
 				if (weaponItem) {
@@ -3649,17 +3647,14 @@ void ProtocolGame::sendCyclopediaCharacterCombatStats() {
 			int32_t attackSkill = player->getSkillLevel(SKILL_DISTANCE);
 			float attackFactor = player->getAttackFactor();
 			int32_t maxDamage = static_cast<int32_t>(Weapons::getMaxWeaponDamage(player, attackSkill, attackValue, attackFactor, true) * player->getVocation()->distDamageMultiplier);
-			int32_t maxValueDamage = static_cast<int32_t>(Weapons::getMaxWeaponDamage(player, attackSkill, attackValue - weapon->getAttack() + it.abilities->elementDamage, attackFactor, true) * player->getVocation()->distDamageMultiplier);
 			if (it.abilities && it.abilities->elementType != COMBAT_NONE) {
-				maxDamage += maxValueDamage;
+				maxDamage += static_cast<int32_t>(Weapons::getMaxWeaponDamage(player, attackSkill, attackValue - weapon->getAttack() + it.abilities->elementDamage, attackFactor, true) * player->getVocation()->distDamageMultiplier);
 			}
-
 			msg.add<uint16_t>(maxDamage >> 1);
 			msg.addByte(CIPBIA_ELEMENTAL_PHYSICAL);
-
 			if (it.abilities && it.abilities->elementType != COMBAT_NONE) {
 				if (attackValue) {
-					msg.addByte(static_cast<uint32_t>(std::round((it.abilities->elementDamage) * 100 / attackValue) + it.abilities->elementDamage) * 100 / attackValue);
+					msg.addByte(static_cast<uint32_t>(it.abilities->elementDamage) * 100 / attackValue);
 				} else {
 					msg.addByte(0);
 				}
@@ -3669,21 +3664,22 @@ void ProtocolGame::sendCyclopediaCharacterCombatStats() {
 			}
 		} else {
 			int32_t attackValue = std::max<int32_t>(0, weapon->getAttack());
+			const int32_t extraAttackValue = std::round(addPhysicalPoints * attackValue);
+			attackValue += extraAttackValue;
+
 			int32_t attackSkill = player->getWeaponSkill(weapon);
 			float attackFactor = player->getAttackFactor();
-			int32_t damageMax = ((Weapons::getMaxWeaponDamage(player, attackSkill, attackValue, attackFactor, true) * player->getVocation()->meleeDamageMultiplier));
-			int32_t maxDamage = static_cast<int32_t>(Weapons::getMaxWeaponDamage(player, attackSkill, attackValue, attackFactor, true) * player->getVocation()->distDamageMultiplier);
-			int32_t maxValueDamage = static_cast<int32_t>(Weapons::getMaxWeaponDamage(player, attackSkill, attackValue - weapon->getAttack() + it.abilities->elementDamage, attackFactor, true) * player->getVocation()->distDamageMultiplier);
+			int32_t maxDamage = static_cast<int32_t>(Weapons::getMaxWeaponDamage(player, attackSkill, attackValue, attackFactor, true) * player->getVocation()->meleeDamageMultiplier);
 			if (it.abilities && it.abilities->elementType != COMBAT_NONE) {
-				maxDamage += maxValueDamage;
+				maxDamage += static_cast<int32_t>(Weapons::getMaxWeaponDamage(player, attackSkill, it.abilities->elementDamage, attackFactor, true) * player->getVocation()->meleeDamageMultiplier);
 			}
-
 			msg.add<uint16_t>(maxDamage >> 1);
 			msg.addByte(CIPBIA_ELEMENTAL_PHYSICAL);
-
 			if (it.abilities && it.abilities->elementType != COMBAT_NONE) {
 				if (attackValue) {
-					msg.addByte(static_cast<uint32_t>(std::round((it.abilities->elementDamage) * 100 / attackValue) + it.abilities->elementDamage) * 100 / attackValue);
+					const int32_t extraElementalValue = std::round(addPhysicalPoints * it.abilities->elementDamage);
+					it.abilities->elementDamage += extraElementalValue;
+					msg.addByte(static_cast<uint32_t>(it.abilities->elementDamage) * 100 / attackValue);
 				} else {
 					msg.addByte(0);
 				}
@@ -4345,7 +4341,7 @@ void ProtocolGame::sendBasicData() {
 
 	// Prey window
 	if (player->getVocation()->getId() == 0 && player->getGroup()->id < GROUP_TYPE_GAMEMASTER) {
-		msg.addByte(1);
+		msg.addByte(0);
 	} else {
 		msg.addByte(1); // has reached Main (allow player to open Prey window)
 	}
@@ -4385,7 +4381,7 @@ void ProtocolGame::sendBasicData() {
 				msg.add<uint16_t>(spell->getSpellId());
 			}
 		} else {
-			msg.add<uint64_t>(spell->getSpellId());
+			msg.add<uint16_t>(spell->getSpellId());
 		}
 	}
 
@@ -4489,7 +4485,7 @@ void ProtocolGame::sendBlessStatus() {
 	if (oldProtocol) {
 		msg.add<uint16_t>(blessCount >= 5 ? 0x01 : 0x00);
 	} else {
-		bool glow = ((g_configManager().getBoolean(INVENTORY_GLOW) && blessCount >= 5) || player->getLevel() < g_configManager().getNumber(ADVENTURERSBLESSING_LEVEL));
+		bool glow = player->getVocationId() > VOCATION_NONE && ((g_configManager().getBoolean(INVENTORY_GLOW) && blessCount >= 5) || player->getLevel() < g_configManager().getNumber(ADVENTURERSBLESSING_LEVEL));
 		msg.add<uint16_t>(glow ? 1 : 0); // Show up the glowing effect in items if you have all blesses or adventurer's blessing
 		msg.addByte((blessCount >= 7) ? 3 : ((blessCount >= 5) ? 2 : 1)); // 1 = Disabled | 2 = normal | 3 = green
 	}

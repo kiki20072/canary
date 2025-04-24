@@ -1473,6 +1473,7 @@ void PlayerWheel::sendOpenWheelWindow(NetworkMessage &msg, uint32_t ownerId) {
 	addGradeModifiers(msg);
 
 	const auto &voc = m_player.getVocation();
+
 	if (!voc) {
 		g_logger().error("[{}] Failed to get vocation for player {}", __FUNCTION__, m_player.getName());
 		return;
