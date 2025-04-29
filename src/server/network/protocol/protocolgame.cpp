@@ -3579,10 +3579,11 @@ void ProtocolGame::sendCyclopediaCharacterCombatStats() {
 	}
 
 	auto pointPhysical = player->kv()->get("physical-damage-point-system").value().getNumber();
-	auto addPhysicalPoints = pointPhysical / 3000;
+	auto addPhysicalPoints = pointPhysical / 1500;
 
 	auto pointSpells = player->kv()->get("spell-damage-point-system").value().getNumber();
-	auto addSpellDamagePoints = pointSpells / 100;
+	int32_t extraDamage = std::min<int32_t>(500, (player->kv()->get("spell-damage-point-system").value().getNumber() / 2));
+	auto addSpellDamagePoints = pointSpells / 75;
 
 	NetworkMessage msg;
 	msg.addByte(0xDA);
@@ -3629,7 +3630,7 @@ void ProtocolGame::sendCyclopediaCharacterCombatStats() {
 		const ItemType &it = Item::items[weapon->getID()];
 		if (it.weaponType == WEAPON_WAND) {
 			const auto addSpellDamageFinal = std::round(addSpellDamagePoints * it.maxHitChance);
-			msg.add<uint16_t>(it.maxHitChance + addSpellDamageFinal);
+			msg.add<uint16_t>(it.maxHitChance + addSpellDamageFinal + extraDamage);
 			msg.addByte(getCipbiaElement(it.combatType));
 			msg.addByte(0);
 			msg.addByte(0);
