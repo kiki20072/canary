@@ -327,13 +327,12 @@ void Weapon::onUsedWeapon(const std::shared_ptr<Player> &player, const std::shar
 	const uint32_t manaCost = getManaCost(player);
 	if (manaCost != 0) {
 		auto pointSpells = player->kv()->get("spell-damage-point-system").value().getNumber();
-		auto costExtraMana = pointSpells / 20;
-		auto costExtraFinal = std::round(costExtraMana * manaCost);
-		player->addManaSpent(manaCost + costExtraFinal);
-		player->changeMana(-static_cast<int32_t>(manaCost + costExtraFinal));
+		auto costExtraMana = std::round(pointSpells / 20);
+		player->addManaSpent(manaCost + costExtraMana);
+		player->changeMana(-static_cast<int32_t>(manaCost + costExtraMana));
 
 		if (g_configManager().getBoolean(REFUND_BEGINNING_WEAPON_MANA) && (item->getName() == "wand of vortex" || item->getName() == "snakebite rod")) {
-			player->changeMana(static_cast<int32_t>(manaCost + costExtraFinal));
+			player->changeMana(static_cast<int32_t>(manaCost + costExtraMana));
 		}
 	}
 
@@ -612,7 +611,7 @@ int32_t WeaponMelee::getElementDamage(const std::shared_ptr<Player> &player, con
 	const int32_t attackSkill = player->getWeaponSkill(item);
 
 	auto pointPhysical = player->kv()->get("physical-damage-point-system").value().getNumber();
-	auto addPhysicalPoints = pointPhysical / 3000;
+	auto addPhysicalPoints = pointPhysical / 1500;
 
 	int32_t attackValue = elementDamage;
 	int32_t extraAttackValue = std::round(addPhysicalPoints * elementDamage);
@@ -636,7 +635,7 @@ int32_t WeaponMelee::getWeaponDamage(const std::shared_ptr<Player> &player, cons
 	const int32_t attackSkill = player->getWeaponSkill(item);
 
 	auto pointPhysical = player->kv()->get("physical-damage-point-system").value().getNumber();
-	auto addPhysicalPoints = pointPhysical / 3000;
+	auto addPhysicalPoints = pointPhysical / 1500;
 
 	int32_t physicalAttack = std::max<int32_t>(0, item->getAttack());
 	int32_t addPhysicalFinal = std::round(addPhysicalPoints * physicalAttack);
@@ -899,7 +898,7 @@ int32_t WeaponDistance::getWeaponDamage(const std::shared_ptr<Player> &player, c
 	bool hasElement = false;
 
 	auto pointPhysical = player->kv()->get("physical-damage-point-system").value().getNumber();
-	auto addPhysicalPoints = pointPhysical / 3000;
+	auto addPhysicalPoints = pointPhysical / 1500;
 
 	int32_t addPhysicalFinal = std::round(addPhysicalPoints * attackValue);
 	attackValue += addPhysicalFinal;
@@ -984,9 +983,9 @@ void WeaponWand::configureWeapon(const ItemType &it) {
 
 int32_t WeaponWand::getWeaponDamage(const std::shared_ptr<Player> &player, const std::shared_ptr<Creature> &, const std::shared_ptr<Item> &, bool maxDamage /* = false*/) const {
 	int32_t multiPoint = player->kv()->get("spell-damage-point-system").value().getNumber() / 100;
-	int32_t extraDamage = std::min<int32_t>(250, (player->kv()->get("spell-damage-point-system").value().getNumber() / 10));
+	int32_t extraDamage = std::min<int32_t>(250, (player->kv()->get("spell-damage-point-system").value().getNumber() / 2));
 
-	return maxDamage ? -(((multiPoint * maxChange) / 2) + maxChange + extraDamage) : -normal_random(((multiPoint * minChange) / 2) + minChange + extraDamage, ((multiPoint * maxChange) / 2) + maxChange + extraDamage);
+	return maxDamage ? -(((multiPoint * maxChange) /3.2) + maxChange + extraDamage) : -normal_random(((multiPoint * minChange) /3.2) + minChange + extraDamage, ((multiPoint * maxChange) /3.2) + maxChange + extraDamage);
 }
 
 int16_t WeaponWand::getElementDamageValue() const {
