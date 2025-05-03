@@ -39,7 +39,7 @@ local config = {
 		{ fromPos = Position(33437, 31308, 8), toPos = Position(33456, 31323, 8), townId = TOWNS_LIST.GRAY_BEACH },
 		{ fromPos = Position(33618, 31889, 7), toPos = Position(33648, 31900, 7), townId = TOWNS_LIST.RATHLETON },
 		{ fromPos = Position(33544, 32373, 6), toPos = Position(33562, 32388, 6), townId = TOWNS_LIST.ROSHAMUUL },
-		{ fromPos = Position(33916, 31474, 7), toPos = Position(33916, 31474, 7), townId = TOWNS_LIST.ISSAVI },
+		{ fromPos = Position(33916, 31473, 7), toPos = Position(33927, 31487, 7), townId = TOWNS_LIST.ISSAVI },
 	},
 }
 
