@@ -326,8 +326,8 @@ void Weapon::onUsedWeapon(const std::shared_ptr<Player> &player, const std::shar
 
 	const uint32_t manaCost = getManaCost(player);
 	if (manaCost != 0) {
-		auto pointSpells = player->kv()->get("spell-damage-point-system").value().getNumber();
-		auto costExtraMana = std::round(pointSpells / 20);
+		auto spellPoint = player->kv()->get("spell-damage-point-system").value().getNumber();
+		auto costExtraMana = std::round(spellPoint / 20);
 		player->addManaSpent(manaCost + costExtraMana);
 		player->changeMana(-static_cast<int32_t>(manaCost + costExtraMana));
 
@@ -982,10 +982,11 @@ void WeaponWand::configureWeapon(const ItemType &it) {
 }
 
 int32_t WeaponWand::getWeaponDamage(const std::shared_ptr<Player> &player, const std::shared_ptr<Creature> &, const std::shared_ptr<Item> &, bool maxDamage /* = false*/) const {
-	int32_t multiPoint = player->kv()->get("spell-damage-point-system").value().getNumber() / 100;
-	int32_t extraDamage = std::min<int32_t>(250, (player->kv()->get("spell-damage-point-system").value().getNumber() / 2));
+	int32_t spellPoint = player->kv()->get("spell-damage-point-system").value().getNumber();
+	int32_t multiPoint = spellPoint / 100;
+	int32_t extraDamage = std::min<int32_t>(250, std::round(spellPoint / 2));
 
-	return maxDamage ? -(((multiPoint * maxChange) /3.2) + maxChange + extraDamage) : -normal_random(((multiPoint * minChange) /3.2) + minChange + extraDamage, ((multiPoint * maxChange) /3.2) + maxChange + extraDamage);
+	return maxDamage ? -(std::round((multiPoint * maxChange) / 3.2) + maxChange + extraDamage) : -normal_random((std::round((multiPoint * minChange) / 3.2) + minChange + extraDamage), std::round((multiPoint * maxChange) / 3.2) + maxChange + extraDamage);
 }
 
 int16_t WeaponWand::getElementDamageValue() const {

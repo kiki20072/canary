@@ -3581,9 +3581,9 @@ void ProtocolGame::sendCyclopediaCharacterCombatStats() {
 	auto pointPhysical = player->kv()->get("physical-damage-point-system").value().getNumber();
 	auto addPhysicalPoints = pointPhysical / 1500;
 
-	auto pointSpells = player->kv()->get("spell-damage-point-system").value().getNumber();
-	int32_t extraDamage = std::min<int32_t>(500, (player->kv()->get("spell-damage-point-system").value().getNumber() / 2));
-	auto addSpellDamagePoints = pointSpells / 75;
+	auto spellPoint = player->kv()->get("spell-damage-point-system").value().getNumber();
+	int32_t extraDamage = std::min<int32_t>(500, std::round(spellPoint / 2));
+	auto addSpellDamagePoints = spellPoint / 75;
 
 	NetworkMessage msg;
 	msg.addByte(0xDA);
